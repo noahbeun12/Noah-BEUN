@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preuves — Noah Beun</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --cream: #F5F0E8;
+    --black: #0D0D0D;
+    --red: #D93025;
+    --grey: #8A8070;
+    --border: 2px solid var(--black);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; font-size: 16px; }
+
+  body {
+    background: var(--cream);
+    color: var(--black);
+    font-family: 'DM Mono', monospace;
+    cursor: crosshair;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--cream); }
+  ::-webkit-scrollbar-thumb { background: var(--black); }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.2rem 3rem;
+    background: var(--cream);
+    border-bottom: var(--border);
+  }
+
+  .nav-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 0.1em;
+    color: var(--black);
+    text-decoration: none;
+  }
+
+  .nav-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--black);
+    text-decoration: none;
+    border: var(--border);
+    padding: 0.6rem 1.4rem;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .nav-back:hover { background: var(--black); color: var(--cream); }
+
+  /* ─── PAGE HEADER ─── */
+  .page-hero {
+    min-height: 40vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-bottom: var(--border);
+    padding-top: 64px;
+  }
+
+  .page-hero-left {
+    padding: 5rem 3rem;
+    border-right: var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+
+  .page-hero-tag {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--grey);
+    margin-bottom: 1.5rem;
+  }
+
+  .page-hero-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(4rem, 8vw, 8rem);
+    line-height: 0.9;
+    color: var(--black);
+    margin-bottom: 1.5rem;
+  }
+
+  .page-hero-title span { color: var(--red); }
+
+  .page-hero-sub {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--grey);
+    line-height: 1.6;
+    max-width: 380px;
+  }
+
+  .page-hero-right {
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    padding: 5rem 3rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .page-hero-big {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(10rem, 20vw, 18rem);
+    line-height: 1;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(13,13,13,0.1);
+    user-select: none;
+    pointer-events: none;
+  }
+
+  /* ─── FILTER BAR ─── */
+  .proof-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    border-bottom: var(--border);
+  }
+
+  .proof-filter-btn {
+    padding: 1rem 2rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    background: none;
+    border: none;
+    border-right: var(--border);
+    border-bottom: var(--border);
+    cursor: pointer;
+    color: var(--grey);
+    transition: background 0.2s, color 0.2s;
+    white-space: nowrap;
+  }
+
+  .proof-filter-btn:hover,
+  .proof-filter-btn.active { background: var(--black); color: var(--cream); }
+
+  /* ─── PREUVES GRID ─── */
+  .preuves-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* ─── PREUVE CARD ─── */
+  .preuve-card {
+    border-right: var(--border);
+    border-bottom: var(--border);
+    padding: 3rem;
+    position: relative;
+    transition: background 0.25s;
+  }
+
+  .preuve-card:nth-child(2n) { border-right: none; }
+  .preuve-card:hover { background: rgba(13,13,13,0.03); }
+
+  .preuve-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .preuve-id {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3.5rem;
+    line-height: 1;
+    color: transparent;
+    -webkit-text-stroke: 1.5px rgba(13,13,13,0.15);
+    user-select: none;
+    flex-shrink: 0;
+  }
+
+  .preuve-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    justify-content: flex-end;
+  }
+
+  .preuve-badge {
+    font-size: 0.55rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--cream);
+    background: var(--black);
+    padding: 0.3rem 0.7rem;
+    line-height: 1;
+  }
+
+  .preuve-badge.red { background: var(--red); }
+
+  .preuve-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem;
+    color: var(--black);
+    letter-spacing: 0.02em;
+    margin-bottom: 0.5rem;
+    line-height: 1.1;
+  }
+
+  .preuve-context {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--grey);
+    margin-bottom: 1.2rem;
+    display: block;
+  }
+
+  .preuve-desc {
+    font-size: 0.8rem;
+    color: var(--grey);
+    line-height: 1.8;
+    margin-bottom: 1.8rem;
+  }
+
+  /* ─── DOCUMENTS DANS UNE PREUVE ─── */
+  .preuve-docs {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .preuve-doc {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.7rem 1rem;
+    border: 1px solid rgba(13,13,13,0.15);
+    font-size: 0.72rem;
+    transition: border-color 0.2s, background 0.2s;
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--black);
+  }
+
+  .preuve-doc:hover {
+    border-color: var(--black);
+    background: var(--black);
+    color: var(--cream);
+  }
+
+  .preuve-doc-icon {
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .preuve-doc-name {
+    flex: 1;
+    letter-spacing: 0.03em;
+  }
+
+  .preuve-doc-type {
+    font-size: 0.58rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--red);
+    flex-shrink: 0;
+    transition: color 0.2s;
+  }
+
+  .preuve-doc:hover .preuve-doc-type { color: var(--cream); }
+
+  /* ─── COMPÉTENCES TAG ─── */
+  .preuve-comp-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(13,13,13,0.1);
+  }
+
+  .comp-tag {
+    font-size: 0.58rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--grey);
+    border: 1px solid rgba(13,13,13,0.2);
+    padding: 0.3rem 0.6rem;
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  .comp-tag:hover { border-color: var(--red); color: var(--red); }
+
+  /* ─── DROPDOWN ─── */
+  .preuve-dropdown { position: relative; }
+
+  .preuve-dropdown-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.7rem 1rem;
+    border: 1px solid rgba(13,13,13,0.15);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    background: none;
+    cursor: pointer;
+    color: var(--black);
+    text-align: left;
+    transition: border-color 0.2s, background 0.2s, color 0.2s;
+  }
+
+  .preuve-dropdown-btn:hover {
+    border-color: var(--black);
+    background: var(--black);
+    color: var(--cream);
+  }
+
+  .preuve-dropdown-arrow {
+    margin-left: auto;
+    font-size: 0.9rem;
+    transition: transform 0.25s;
+  }
+
+  .preuve-dropdown.open .preuve-dropdown-arrow { transform: rotate(180deg); }
+
+  .preuve-dropdown-menu {
+    display: none;
+    flex-direction: column;
+    border: 1px solid rgba(13,13,13,0.15);
+    border-top: none;
+  }
+
+  .preuve-dropdown.open .preuve-dropdown-menu { display: flex; }
+
+  .preuve-dropdown-item {
+    border: none;
+    border-top: 1px solid rgba(13,13,13,0.1);
+  }
+
+  /* ─── EMPTY STATE ─── */
+  .preuves-empty {
+    display: none;
+    padding: 5rem 3rem;
+    text-align: center;
+    color: var(--grey);
+    font-size: 0.8rem;
+    border-bottom: var(--border);
+    grid-column: 1 / -1;
+  }
+
+  /* ─── FOOTER ─── */
+  footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 3rem;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--grey);
+  }
+
+  /* ─── REVEAL ─── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 900px) {
+    nav { padding: 1rem 1.5rem; }
+    .page-hero { grid-template-columns: 1fr; }
+    .page-hero-right { display: none; }
+    .page-hero-left { padding: 3rem 1.5rem; border-right: none; }
+    .preuves-grid { grid-template-columns: 1fr; }
+    .preuve-card { border-right: none; padding: 2rem 1.5rem; }
+    footer { padding: 1.2rem 1.5rem; flex-direction: column; gap: 0.5rem; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="portfolio.html" class="nav-logo">noah beun</a>
+  <a href="portfolio.html#competences" class="nav-back">← Retour au portfolio</a>
+</nav>
+
+<!-- PAGE HERO -->
+<div class="page-hero">
+  <div class="page-hero-left">
+    <p class="page-hero-tag">BTS SIO Option SISR — Session 2025</p>
+    <h1 class="page-hero-title">
+      PREUVES<br>
+      <span>DE COMPÉTENCE</span>
+    </h1>
+    <p class="page-hero-sub">
+      Documents et productions justifiant les réalisations professionnelles mises en œuvre lors de la formation et des stages.
+    </p>
+  </div>
+  <div class="page-hero-right">
+    <div class="page-hero-big">E5</div>
+  </div>
+</div>
+
+<!-- FILTRES -->
+<div class="proof-filter-bar">
+  <button class="proof-filter-btn active" onclick="filterPreuves('all', this)">Toutes</button>
+  <button class="proof-filter-btn" onclick="filterPreuves('patrimoine', this)">Gérer le patrimoine informatique</button>
+  <button class="proof-filter-btn" onclick="filterPreuves('incidents', this)">Répondre aux incidents et aux demandes d'assistance et d'évolution</button>
+  <button class="proof-filter-btn" onclick="filterPreuves('enligne', this)">Développer la présence en ligne de l'organisation</button>
+  <button class="proof-filter-btn" onclick="filterPreuves('projet', this)">Travailler en mode projet</button>
+  <button class="proof-filter-btn" onclick="filterPreuves('service', this)">Mettre à disposition des utilisateurs un service informatique</button>
+  <button class="proof-filter-btn" onclick="filterPreuves('devpro', this)">Organiser son développement professionnel</button>
+</div>
+
+<!-- GRILLE DES PREUVES -->
+<div class="preuves-grid" id="preuvesGrid">
+
+  <!-- R1 -->
+  <div class="preuve-card reveal" id="r1" data-cat="formation">
+    <div class="preuve-card-header">
+      <span class="preuve-id">R1</span>
+      <div class="preuve-badges">
+        <span class="preuve-badge">Formation</span>
+        <span class="preuve-badge red">Dev. professionnel</span>
+      </div>
+    </div>
+    <h2 class="preuve-title">Gérer son identité professionnelle</h2>
+    <span class="preuve-context">Lycée Gaston Berger · JJ/MM/AA – JJ/MM/AA</span>
+    <p class="preuve-desc">
+      La création et l'optimisation d'un profil LinkedIn démontre la capacité à construire une identité numérique professionnelle cohérente et visible. Chaque choix — titre, résumé, compétences — reflète une démarche consciente de mise en valeur de son parcours. En tant que plateforme de référence dans le monde IT, LinkedIn atteste également d'une maîtrise des outils du web professionnel attendue en BTS SIO.
+    </p>
+    <div class="preuve-docs">
+      <div class="preuve-dropdown">
+        <button class="preuve-dropdown-btn" onclick="toggleDropdown(this)">
+          <span class="preuve-doc-icon">🔗</span>
+          <span class="preuve-doc-name">Liens & ressources</span>
+          <span class="preuve-dropdown-arrow">▾</span>
+        </button>
+        <div class="preuve-dropdown-menu">
+          <a href="https://fr.linkedin.com/in/noah-beun-452687361" target="_blank" rel="noopener" class="preuve-doc preuve-dropdown-item">
+            <span class="preuve-doc-icon">💼</span>
+            <span class="preuve-doc-name">Profil LinkedIn — Noah Beun</span>
+            <span class="preuve-doc-type">LinkedIn</span>
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="preuve-comp-tags">
+      <span class="comp-tag">Dev. professionnel</span>
+      <span class="comp-tag">Présence en ligne</span>
+    </div>
+  </div>
+
+  <!-- R2 -->
+  <div class="preuve-card reveal" id="r2" data-cat="formation">
+    <div class="preuve-card-header">
+      <span class="preuve-id">R2</span>
+      <div class="preuve-badges">
+        <span class="preuve-badge">Formation</span>
+        <span class="preuve-badge red">Incidents</span>
+        <span class="preuve-badge red">Présence en ligne</span>
+        <span class="preuve-badge red">Service</span>
+      </div>
+    </div>
+    <h2 class="preuve-title">Mettre en œuvre des outils et stratégies de veille informationnelle</h2>
+    <span class="preuve-context">Lycée Gaston Berger · JJ/MM/AA – JJ/MM/AA</span>
+    <p class="preuve-desc">
+      Mise en place d'une stratégie de veille informationnelle à deux niveaux : Google Alertes pour surveiller l'actualité IT en temps réel, et les flux RSS de CVE.mitre.org et NVD (nvd.nist.gov) pour assurer un suivi des vulnérabilités de sécurité référencées. Cette démarche prouve la capacité à anticiper les menaces et à rester à jour dans un domaine en évolution constante, compétence essentielle en SISR. Les preuves sont disponibles ci-dessous via le menu déroulant.
+    </p>
+    <div class="preuve-docs">
+      <div class="preuve-dropdown">
+        <button class="preuve-dropdown-btn" onclick="toggleDropdown(this)">
+          <span class="preuve-doc-icon">🔗</span>
+          <span class="preuve-doc-name">Liens & ressources</span>
+          <span class="preuve-dropdown-arrow">▾</span>
+        </button>
+        <div class="preuve-dropdown-menu">
+          <a href="https://www.google.fr/alerts" target="_blank" rel="noopener" class="preuve-doc preuve-dropdown-item">
+            <span class="preuve-doc-icon">🔔</span>
+            <span class="preuve-doc-name">Google Alertes</span>
+            <span class="preuve-doc-type">Lien</span>
+          </a>
+          <a href="https://cve.mitre.org/" target="_blank" rel="noopener" class="preuve-doc preuve-dropdown-item">
+            <span class="preuve-doc-icon">🛡️</span>
+            <span class="preuve-doc-name">CVE — MITRE</span>
+            <span class="preuve-doc-type">Lien</span>
+          </a>
+          <a href="https://nvd.nist.gov/" target="_blank" rel="noopener" class="preuve-doc preuve-dropdown-item">
+            <span class="preuve-doc-icon">🛡️</span>
+            <span class="preuve-doc-name">NVD — NIST</span>
+            <span class="preuve-doc-type">Lien</span>
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="preuve-comp-tags">
+      <span class="comp-tag">Répondre aux incidents</span>
+      <span class="comp-tag">Présence en ligne</span>
+      <span class="comp-tag">Mettre à disposition</span>
+    </div>
+  </div>
+
+  <!-- R3 -->
+  <div class="preuve-card reveal" id="r3" data-cat="formation">
+    <div class="preuve-card-header">
+      <span class="preuve-id">R3</span>
+      <div class="preuve-badges">
+        <span class="preuve-badge">Formation</span>
+        <span class="preuve-badge red">Patrimoine</span>
+        <span class="preuve-badge red">Incidents</span>
+        <span class="preuve-badge red">Service</span>
+      </div>
+    </div>
+    <h2 class="preuve-title">Réalisation 3 — Formation</h2>
+    <span class="preuve-context">Lycée Gaston Berger · JJ/MM/AA – JJ/MM/AA</span>
+    <p class="preuve-desc">
+      Décrivez ici l'objectif de la réalisation, le contexte, les technologies et outils utilisés, ainsi que votre rôle et les résultats obtenus.
+    </p>
+    <div class="preuve-docs">
+      <a href="#" class="preuve-doc">
+        <span class="preuve-doc-icon">📄</span>
+        <span class="preuve-doc-name">Rapport de réalisation</span>
+        <span class="preuve-doc-type">PDF</span>
+      </a>
+      <a href="#" class="preuve-doc">
+        <span class="preuve-doc-icon">💻</span>
+        <span class="preuve-doc-name">Documentation technique</span>
+        <span class="preuve-doc-type">Lien</span>
+      </a>
+    </div>
+    <div class="preuve-comp-tags">
+      <span class="comp-tag">Gérer le patrimoine</span>
+      <span class="comp-tag">Répondre aux incidents</span>
+      <span class="comp-tag">Mettre à disposition</span>
+    </div>
+  </div>
+
+  <!-- R4 -->
+  <div class="preuve-card reveal" id="r4" data-cat="patrimoine">
+    <div class="preuve-card-header">
+      <span class="preuve-id">R4</span>
+      <div class="preuve-badges">
+        <span class="preuve-badge">Stage 1A</span>
+        <span class="preuve-badge red">Patrimoine</span>
+        <span class="preuve-badge red">Incidents</span>
+        <span class="preuve-badge red">Service</span>
+      </div>
+    </div>
+    <h2 class="preuve-title">Recenser et identifier les ressources numériques</h2>
+    <span class="preuve-context">NordNet · Villeneuve-d'Ascq · Juin – Juillet 2025</span>
+    <p class="preuve-desc">
+      Durant mon stage au Pôle DSI Support de NordNet SA, j'ai recensé et identifié l'ensemble des ressources numériques de l'entreprise via deux outils : VMware vSphere pour l'inventaire des machines virtuelles (attributs criticité, environnement, responsable, dates), et le portail RIPE NCC pour le recensement des plages IPv4 allouées (~117 760 adresses). Cette mission prouve la capacité à structurer un inventaire formel et traçable des ressources d'une infrastructure professionnelle. Les preuves sont disponibles ci-dessous via le menu déroulant.
+    </p>
+    <div class="preuve-docs">
+      <div class="preuve-dropdown">
+        <button class="preuve-dropdown-btn" onclick="toggleDropdown(this)">
+          <span class="preuve-doc-icon">🔗</span>
+          <span class="preuve-doc-name">Liens & ressources</span>
+          <span class="preuve-dropdown-arrow">▾</span>
+        </button>
+        <div class="preuve-dropdown-menu">
+          <a href="competence1_recenser_identifier.pdf" target="_blank" rel="noopener" class="preuve-doc preuve-dropdown-item">
+            <span class="preuve-doc-icon">📄</span>
+            <span class="preuve-doc-name">Recenser et identifier les ressources numériques</span>
+            <span class="preuve-doc-type">PDF</span>
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="preuve-comp-tags">
+      <span class="comp-tag">Gérer le patrimoine</span>
+      <span class="comp-tag">Répondre aux incidents</span>
+      <span class="comp-tag">Mettre à disposition</span>
+    </div>
+  </div>
+
+  <!-- R5 -->
+  <div class="preuve-card reveal" id="r5" data-cat="patrimoine">
+    <div class="preuve-card-header">
+      <span class="preuve-id">R5</span>
+      <div class="preuve-badges">
+        <span class="preuve-badge">Stage 1A</span>
+        <span class="preuve-badge red">Présence en ligne</span>
+        <span class="preuve-badge red">Projet</span>
+        <span class="preuve-badge red">Dev. professionnel</span>
+      </div>
+    </div>
+    <h2 class="preuve-title">Vérifier le respect des règles d'utilisation des ressources numériques</h2>
+    <span class="preuve-context">NordNet · Villeneuve-d'Ascq · Juin – Juillet 2025</span>
+    <p class="preuve-desc">
+      Au sein du Pôle DSI de NordNet SA, j'ai contrôlé le respect des règles d'utilisation des ressources numériques sur deux volets : la surveillance des alarmes vSphere (mot de passe root expiré, surcharges CPU et mémoire) et la vérification des droits d'accès au portail RIPE NCC (principe du moindre privilège, rôle Regular). Cette mission prouve la capacité à détecter les non-conformités et à s'assurer que les ressources sont utilisées selon les politiques internes de sécurité. Les preuves sont disponibles ci-dessous via le menu déroulant.
+    </p>
+    <div class="preuve-docs">
+      <div class="preuve-dropdown">
+        <button class="preuve-dropdown-btn" onclick="toggleDropdown(this)">
+          <span class="preuve-doc-icon">🔗</span>
+          <span class="preuve-doc-name">Liens & ressources</span>
+          <span class="preuve-dropdown-arrow">▾</span>
+        </button>
+        <div class="preuve-dropdown-menu">
+          <a href="competence2_verifier_regles.pdf" target="_blank" rel="noopener" class="preuve-doc preuve-dropdown-item">
+            <span class="preuve-doc-icon">📄</span>
+            <span class="preuve-doc-name">Vérifier le respect des règles d'utilisation des ressources numériques</span>
+            <span class="preuve-doc-type">PDF</span>
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="preuve-comp-tags">
+      <span class="comp-tag">Présence en ligne</span>
+      <span class="comp-tag">Travailler en mode projet</span>
+      <span class="comp-tag">Dev. professionnel</span>
+    </div>
+  </div>
+
+  <!-- R6 -->
+  <div class="preuve-card reveal" id="r6" data-cat="patrimoine">
+    <div class="preuve-card-header">
+      <span class="preuve-id">R6</span>
+      <div class="preuve-badges">
+        <span class="preuve-badge">Stage 2A</span>
+        <span class="preuve-badge red">Patrimoine</span>
+        <span class="preuve-badge red">Présence en ligne</span>
+        <span class="preuve-badge red">Projet</span>
+      </div>
+    </div>
+    <h2 class="preuve-title">Exploiter des référentiels, normes et standards adoptés par le prestataire informatique</h2>
+    <span class="preuve-context">NordNet · Villeneuve-d'Ascq · Juin – Juillet 2025</span>
+    <p class="preuve-desc">
+      NordNet SA, en tant qu'opérateur Internet membre du RIPE NCC (AS8362), applique des standards internationaux stricts pour la gestion de ses ressources réseau. Durant mon stage, j'ai exploité ces référentiels en consultant et modifiant des objets RIPE Database (inetnum, route, organisation) selon les normes RFC 2622, et en maîtrisant le mécanisme de maintainer (mnt-by) qui régit les droits de modification. Cette mission prouve la capacité à comprendre et appliquer concrètement des normes adoptées par un prestataire informatique professionnel. Les preuves sont disponibles ci-dessous via le menu déroulant.
+    </p>
+    <div class="preuve-docs">
+      <div class="preuve-dropdown">
+        <button class="preuve-dropdown-btn" onclick="toggleDropdown(this)">
+          <span class="preuve-doc-icon">🔗</span>
+          <span class="preuve-doc-name">Liens & ressources</span>
+          <span class="preuve-dropdown-arrow">▾</span>
+        </button>
+        <div class="preuve-dropdown-menu">
+          <a href="competence3_exploiter_referentiels.pdf" target="_blank" rel="noopener" class="preuve-doc preuve-dropdown-item">
+            <span class="preuve-doc-icon">📄</span>
+            <span class="preuve-doc-name">Exploiter des référentiels, normes et standards adoptés par le prestataire</span>
+            <span class="preuve-doc-type">PDF</span>
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="preuve-comp-tags">
+      <span class="comp-tag">Gérer le patrimoine</span>
+      <span class="comp-tag">Présence en ligne</span>
+      <span class="comp-tag">Travailler en mode projet</span>
+    </div>
+  </div>
+
+  <!-- R7 -->
+  <div class="preuve-card reveal" id="r7" data-cat="incidents">
+    <div class="preuve-card-header">
+      <span class="preuve-id">R7</span>
+      <div class="preuve-badges">
+        <span class="preuve-badge">Stage 2A</span>
+        <span class="preuve-badge red">Incidents</span>
+        <span class="preuve-badge red">Projet</span>
+        <span class="preuve-badge red">Service</span>
+        <span class="preuve-badge red">Dev. professionnel</span>
+      </div>
+    </div>
+    <h2 class="preuve-title">Collecter, suivre et orienter des demandes</h2>
+    <span class="preuve-context">Groupe Holder · Marcq-en-Barœul · Jan. – Fév. 2026</span>
+    <p class="preuve-desc">
+      Durant mon stage au Groupe Holder, j'ai géré le cycle de vie complet de tickets d'incidents via l'outil ITSM iWS (Isilog). Le ticket INC0404936 illustre la démarche : réception téléphonique, qualification (objet, catégorie WIFI, urgence), suivi horodaté sur deux semaines avec cinq techniciens, orientation vers l'équipe "Technicien Autres" et escalade de niveau 2 déclenchée. Cette réalisation prouve la maîtrise complète du processus de gestion des demandes en environnement professionnel. Les preuves sont disponibles ci-dessous via le menu déroulant.
+    </p>
+    <div class="preuve-docs">
+      <div class="preuve-dropdown">
+        <button class="preuve-dropdown-btn" onclick="toggleDropdown(this)">
+          <span class="preuve-doc-icon">🔗</span>
+          <span class="preuve-doc-name">Liens & ressources</span>
+          <span class="preuve-dropdown-arrow">▾</span>
+        </button>
+        <div class="preuve-dropdown-menu">
+          <a href="competence1_collecter_suivre_orienter.pdf" target="_blank" rel="noopener" class="preuve-doc preuve-dropdown-item">
+            <span class="preuve-doc-icon">📄</span>
+            <span class="preuve-doc-name">Collecter, suivre et orienter des demandes</span>
+            <span class="preuve-doc-type">PDF</span>
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="preuve-comp-tags">
+      <span class="comp-tag">Répondre aux incidents</span>
+      <span class="comp-tag">Travailler en mode projet</span>
+      <span class="comp-tag">Mettre à disposition</span>
+      <span class="comp-tag">Dev. professionnel</span>
+    </div>
+  </div>
+
+  <!-- R8 -->
+  <div class="preuve-card reveal" id="r8" data-cat="incidents">
+    <div class="preuve-card-header">
+      <span class="preuve-id">R8</span>
+      <div class="preuve-badges">
+        <span class="preuve-badge">Stage 2A</span>
+        <span class="preuve-badge red">Incidents</span>
+        <span class="preuve-badge red">Service</span>
+        <span class="preuve-badge red">Réseau</span>
+      </div>
+    </div>
+    <h2 class="preuve-title">Traiter des demandes concernant les services réseau, système et applicatifs</h2>
+    <span class="preuve-context">Groupe Holder · Marcq-en-Barœul · Jan. – Fév. 2026</span>
+    <p class="preuve-desc">
+      Durant mon stage au Groupe Holder, j'ai traité des incidents sur deux domaines techniques : un dysfonctionnement WIFI Guest (ticket INC0404936, catégorie DSI\Infra\WIFI) et un incident d'impression bureautique Uniflow (DSI\Bureautique\Impression). En parallèle, j'ai assuré une supervision réseau proactive via WhatsUp Gold (scan de 5 764 équipements) et coordonné les interventions du prestataire Coriolis. Cette réalisation prouve la capacité à traiter des demandes techniques variées en mobilisant les bons outils et intervenants. Les preuves sont disponibles ci-dessous via le menu déroulant.
+    </p>
+    <div class="preuve-docs">
+      <div class="preuve-dropdown">
+        <button class="preuve-dropdown-btn" onclick="toggleDropdown(this)">
+          <span class="preuve-doc-icon">🔗</span>
+          <span class="preuve-doc-name">Liens & ressources</span>
+          <span class="preuve-dropdown-arrow">▾</span>
+        </button>
+        <div class="preuve-dropdown-menu">
+          <a href="competence2_traiter_demandes_reseau.pdf" target="_blank" rel="noopener" class="preuve-doc preuve-dropdown-item">
+            <span class="preuve-doc-icon">📄</span>
+            <span class="preuve-doc-name">Traiter des demandes — Services réseau, système et applicatifs</span>
+            <span class="preuve-doc-type">PDF</span>
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="preuve-comp-tags">
+      <span class="comp-tag">Répondre aux incidents</span>
+      <span class="comp-tag">Mettre à disposition</span>
+      <span class="comp-tag">Dev. professionnel</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <span>© 2025 — Noah Beun</span>
+  <span>Portfolio BTS SIO Option SISR</span>
+</footer>
+
+<script>
+  // ─── DROPDOWN ───
+  function toggleDropdown(btn) {
+    const wrapper = btn.closest('.preuve-dropdown');
+    wrapper.classList.toggle('open');
+  }
+
+  // ─── SCROLL REVEAL ───
+  const revealEls = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  revealEls.forEach(el => io.observe(el));
+
+  // ─── FILTER ───
+  function filterPreuves(cat, btn) {
+    document.querySelectorAll('.proof-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.preuve-card').forEach(card => {
+      card.style.display = (cat === 'all' || card.dataset.cat === cat) ? 'flex' : 'none';
+      card.style.flexDirection = 'column';
+    });
+  }
+
+  // ─── ANCHOR SCROLL ───
+  window.addEventListener('DOMContentLoaded', () => {
+    const hash = window.location.hash;
+    if (hash) {
+      setTimeout(() => {
+        const el = document.querySelector(hash);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.style.outline = '2px solid var(--red)';
+          setTimeout(() => el.style.outline = '', 2000);
+        }
+      }, 400);
+    }
+  });
+</script>
+</body>
+</html>
